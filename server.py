@@ -1,6 +1,6 @@
 import telebot
-from urllib.request import urlopen
-from xml.etree import ElementTree as ET
+from telebot import types
+from db_controller import Controller
 import os
 from dotenv import load_dotenv
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -8,57 +8,68 @@ if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
 
 API_TOKEN = os.getenv('API_TOKEN')
-
+ctrl = Controller('base.db')
 bot = telebot.TeleBot(API_TOKEN)
 
-my_cur = ['R01239', 'R01235', 'R01035']
 
-def cur_wrapper(currensies):
-    res = ''
-    for cur in currensies:
-        res += '\u2705 Название валюты: {0} ({1})\nТекущий курс: {2};\n'.format(*cur)
-    return res
+def reg_func(msg):
+    print('state 3')
+    data = [msg.from_user.id]
+    bot.send_message(msg.chat.id, 'Отлично! Приступим к регистрации. \nВведите ваше имя:')
 
+    @bot.message_handler(content_types=['text'])
+    def get_name(message):
+        print('state 4')
+        data.append(message.text)
+        bot.send_message(msg.chat.id, 'Введите вашу фамилию:')
+        bot.register_next_step_handler(message, get_surname)
 
-def get_currencies(currencies_ids_lst=my_cur):
-    cur_res_str = urlopen("http://www.cbr.ru/scripts/XML_daily.asp")
-    result = []
-    cur_res_xml = ET.parse(cur_res_str)
-    root = cur_res_xml.getroot()
-    valutes = root.findall('Valute')
-    for el in valutes:
-        valute_id = el.get('ID')
-        if str(valute_id) in currencies_ids_lst:
-            valute_cur_val = el.find('Value').text
-            valute_name = el.find('Name').text
-            result.append((valute_name, valute_id, valute_cur_val))
-    return result
+    def get_surname(message):
+        print('state 5')
+        data.append(message.text)
+        bot.send_message(msg.chat.id, 'Введите название вашей компании:')
+        bot.register_next_step_handler(message, get_company)
+
+    def get_company(message):
+        print('state 6')
+        data.append(message.text)
+        bot.send_message(msg.chat.id, 'Введите ваш телефон (в формате 8):')
+        bot.register_next_step_handler(message, get_phone)
+
+    def get_phone(message):
+        print('state 7')
+        data.append(message.text)
+        bot.send_message(msg.chat.id, 'Регистрация завершена!')
+        ctrl.add_record(tuple(data))
+        bot.register_next_step_handler(message, auth_func)
 
 @bot.message_handler(commands=['start'])
-def welcome_msg(message):
-    bot.send_message(message.chat.id, 'Привет, ты написал /start!\n'
-                                      'Я бот который помогает тебе анализировать и узнавать курсы валюты;\n'
-                                      'Напиши /help чтоб получить полную справку по функциям')
+def auth_func(message):
+    print('state 1')
+    key = ctrl.query('chat_id', message.from_user.id)
+    if key is None:
+        keyboard = types.InlineKeyboardMarkup()  # наша клавиатура ge
+        key_yes = types.InlineKeyboardButton(text='Принять соглашение', callback_data='accept')  # кнопка «Да»
+        keyboard.add(key_yes)
+        bot.send_message(message.chat.id, 'https://teletype.in/@sellwell/r1AkRWraH', reply_markup = keyboard)
+
+    else:
+        bot.send_message(message.chat.id, 'Привет, {0}'.format(key))
+
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_worker(call):
+    if call.data == 'accept':
+        bot.register_next_step_handler(call.message, reg_func)
+        print('state 2')
+    else:
+        bot.send_message(call.message.chat.id, 'Для работы с ботом необходимо принять соглашение')
 
 
 @bot.message_handler(commands=['help'])
 def help_msg(message):
-    bot.send_message(message.chat.id, 'Введите /daily чтоб получить сегодняшнее значений курсов валют!\n'
-                                      'Введите /currencies чтоб получить список отслеживаемых валют!\n'
-                                      'Введите /uniq_cur чтоб перейти к работе с конкретной валютой!\n')
+    bot.send_message(message.chat.id, 'Команды:\n/start - начать работу с ботом\n/help - вывод справки')
 
-@bot.message_handler(commands=['daily'])
-def help_msg(message):
-    bot.send_message(message.chat.id, cur_wrapper(get_currencies()))
-
-
-@bot.message_handler(commands=['currencies'])
-def help_msg(message):
-    bot.send_message(message.chat.id, 'id отслеживаемых валют: {0}'.format(*my_cur))
-
-@bot.message_handler(commands=['uniq_cur'])
-def help_msg(message):
-    cur_id = message.text.split(' ')[1]
-    bot.send_message(message.chat.id, 'Вы хотите проанализировать валюту c id: {0}?'.format(cur_id))
 
 bot.polling()
