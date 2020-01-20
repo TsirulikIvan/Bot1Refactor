@@ -13,7 +13,7 @@ bot = telebot.TeleBot(API_TOKEN)
 
 
 def reg_func(msg):
-    print('state 3')
+    print('I`m here')
     data = [msg.from_user.id]
     bot.send_message(msg.chat.id, 'Отлично! Приступим к регистрации. \nВведите ваше имя:')
 
@@ -21,7 +21,7 @@ def reg_func(msg):
     def get_name(message):
         print('state 4')
         data.append(message.text)
-        bot.send_message(msg.chat.id, 'Введите вашу фамилию:')
+        bot.send_message(message.chat.id, 'Введите вашу фамилию:')
         bot.register_next_step_handler(message, get_surname)
 
     def get_surname(message):
@@ -43,6 +43,7 @@ def reg_func(msg):
         ctrl.add_record(tuple(data))
         bot.register_next_step_handler(message, auth_func)
 
+
 @bot.message_handler(commands=['start'])
 def auth_func(message):
     print('state 1')
@@ -57,13 +58,12 @@ def auth_func(message):
         bot.send_message(message.chat.id, 'Привет, {0}'.format(key))
 
 
-
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
     if call.data == 'accept':
         bot.register_next_step_handler(call.message, reg_func)
-        print('state 2')
     else:
+        
         bot.send_message(call.message.chat.id, 'Для работы с ботом необходимо принять соглашение')
 
 
