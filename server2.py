@@ -18,10 +18,11 @@ def session_control_func(message):
     print('auth_func')
     if message.from_user.id in sessions.keys():
         print('in session')
-        sessions[message.from_user.id].call(message)
+        sessions[message.from_user.id].checked_reg_func(message)
     else:
         print('not in session')
         sessions.update([(message.from_user.id, Session(message, ctrl, bot))])
+
 
 
 bot.polling()
