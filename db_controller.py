@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine
 
-class Controller:
+
+class Controller(object):
+
     def __init__(self, db_name, driver_name="sqlite"):
         self.engine = create_engine('{0}:///{1}'.format(driver_name, db_name))
 

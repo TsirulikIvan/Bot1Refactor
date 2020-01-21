@@ -44,7 +44,7 @@ def reg_func(msg):
         bot.register_next_step_handler(message, auth_func)
 
 
-@bot.message_handler(commands=['start'])
+
 def auth_func(message):
     print('state 1')
     key = ctrl.query('chat_id', message.from_user.id)
