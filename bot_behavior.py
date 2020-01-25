@@ -1,20 +1,20 @@
-class Behavior:
-    def __init__(self, controller, bot):
-        self.bot = bot
-        self.ctrl = controller
+from telebot import types
 
-    def call(self, msg):
-        pass
+
+class Behavior:
+    def __init__(self, bot):
+        self.bot = bot
 
     def handle_msg(self, msg):
         pass
 
 
 class NormalBehavior(Behavior):
-    def __init__(self, controller, bot):
-        Behavior.__init__(controller, bot)
-
+    def handle_msg(self, msg):
+        pass
 
 class LockedBehavior(Behavior):
-    def __init__(self, controller, bot):
-        Behavior.__init__(controller, bot)
+
+    def handle_msg(self, msg):
+        self.bot.send_message(msg.chat.id, 'Для работы бота, пожалуйста,\n '
+                                           'примите соглашение и зарегистрируйтесь')

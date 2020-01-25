@@ -1,11 +1,12 @@
 from telebot import types
-from bot_behavior import Behavior
-
+import bot_behavior as bh
+#https://teletype.in/@sellwell/H1NiudZhH
 
 class Session:
     def __init__(self, msg, controller, bot):
-        self.is_reg = False
-        self.behavior = Behavior(controller, bot)
+        self.in_competition = False
+        self.ready = False
+        self.behavior = bh.LockedBehavior(bot)
         self.__id = msg.from_user.id
         self.bot = bot
         self.ctrl = controller
@@ -19,17 +20,47 @@ class Session:
         if key is None:
             self.reg_func(msg)
         else:
-            buttons = ['Начать поиск партнера', 'Переговоры по промокоду', 'Тест1', 'Тест2', 'Статистика по промокоду']
-            keyboard = keyboard = types.InlineKeyboardMarkup()
+            self.behavior = bh.NormalBehavior(self.bot)
+            titles = ['Хочу провести переговоры', 'Переговоры по промокоду', 'Тест "Переговорные стили"',
+                      'Тест "Когнитивная регуляция эмоций"', 'Статистика по промокоду']
+            callbacks = ['start_search', 'code_competition', 'test1', 'test2', 'stat']
+            keyboard = types.InlineKeyboardMarkup(row_width=1)
+            buttons = [types.InlineKeyboardButton(text=title, callback_data=callback_data)
+                       for title, callback_data in zip(titles, callbacks)]
+            keyboard.add(*buttons)
             self.bot.send_message(msg.chat.id,
-                                  'Привет, {0}'.format(key))
+                                  'Здравствуй, {0}'.format(key), reply_markup=keyboard)
+
+            @self.bot.message_handler(content_types=['text'])
+            def handler(message):
+                print(message)
+                self.behavior.handle_msg(message)
+
+            @self.bot.callback_query_handler(func=lambda call: True)
+            def callback_worker(call):
+                print(call.data)
+                if call.data == 'start_search':
+                    self.ready = True
+                    keyboard = types.InlineKeyboardMarkup()
+                    keyboard.add(types.InlineKeyboardButton(text='Отменить поиск', callback_data='cancel_search'))
+                    self.bot.send_message(call.message.chat.id, 'Идет поиск визави...\n'
+                                                                'Это может занять некоторое время,'
+                                                                ' рекомендуем не выключать уведомления',
+                                          reply_markup=keyboard)
+                elif call.data == 'cancel_search':
+                    self.ready = False
+                    self.bot.send_message(call.message.chat.id, 'Введите /start для отображения функций бота')
 
     def reg_func(self, message):
         data = [message.from_user.id]
         keyboard = types.InlineKeyboardMarkup()
-        key_yes = types.InlineKeyboardButton(text='Принять соглашение', callback_data='accept')
-        keyboard.add(key_yes)
+        keyboard.add(types.InlineKeyboardButton(text='Принять соглашение', callback_data='accept'))
         self.bot.send_message(message.chat.id, 'https://teletype.in/@sellwell/r1AkRWraH', reply_markup=keyboard)
+
+        @self.bot.message_handler(content_types=['text'])
+        def handler(message):
+            print(message)
+            self.behavior.handle_msg(message)
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_worker(call):
@@ -61,7 +92,6 @@ class Session:
             data.append(message.text)
             self.bot.send_message(message.chat.id, 'Регистрация завершена!')
             self.ctrl.add_record(tuple(data))
-            self.is_reg = True
             self.checked_reg_func(message)
 
 
