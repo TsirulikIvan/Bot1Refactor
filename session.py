@@ -16,7 +16,7 @@ class Session:
         self.behavior.handle_msg(msg)
 
     def checked_reg_func(self, msg):
-        key = self.ctrl.query('chat_id', msg.from_user.id)
+        key = self.ctrl.query_any_rows('chat_id', msg.from_user.id)
         if key is None:
             self.reg_func(msg)
         else:
@@ -49,7 +49,8 @@ class Session:
                                           reply_markup=keyboard)
                 elif call.data == 'cancel_search':
                     self.ready = False
-                    self.bot.send_message(call.message.chat.id, 'Введите /start для отображения функций бота')
+                    self.bot.send_message(call.message.chat.id, 'Поиск отменен... \n'
+                                                                'Введите /start для отображения функций бота')
 
     def reg_func(self, message):
         data = [message.from_user.id]
@@ -64,6 +65,7 @@ class Session:
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_worker(call):
+            print(call.message)
             if call.data == 'accept':
                 self.bot.send_message(call.message.chat.id, 'Отлично! Приступим к регистрации.\n Введите ваше имя')
                 self.bot.register_next_step_handler(call.message, get_name)

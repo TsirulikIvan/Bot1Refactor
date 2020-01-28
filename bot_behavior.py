@@ -11,7 +11,7 @@ class Behavior:
 
 class NormalBehavior(Behavior):
     def handle_msg(self, msg):
-        pass
+        print(msg)
 
 class LockedBehavior(Behavior):
 

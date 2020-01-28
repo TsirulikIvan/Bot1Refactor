@@ -46,7 +46,7 @@ def reg_func(msg):
 
 def auth_func(message):
     print('state 1')
-    key = ctrl.query('chat_id', message.from_user.id)
+    key = ctrl.query_any_rows('chat_id', message.from_user.id)
     if key is None:
         keyboard = types.InlineKeyboardMarkup()  # наша клавиатура ge
         key_yes = types.InlineKeyboardButton(text='Принять соглашение', callback_data='accept')  # кнопка «Да»

@@ -11,8 +11,17 @@ class Controller(object):
         self.engine.execute("""insert into {0} {1}
          values {2}""".format(table_name, col_names, col_values))
 
-    def query(self, cond, cond_value, table_name = 'users',
-              col_name=('user_name', 'user_surname')):
+    def query_adm_data(self, table_name='users',
+                       col_name=('user_name', 'user_surname')):
+        res = self.engine.execute(
+            "select {0},{1},{2}  from {3}".format(*col_name, table_name))
+        try:
+            return res.fetchall()
+        except Exception as err:
+            print(err)
+            return None
+
+    def query_any_rows(self,cond, cond_value, table_name='users', col_name=('user_name', 'user_surname')):
         res = self.engine.execute(
             "select {0} from "
             "{1} where {2}={3}".format(','.join(col_name), table_name, cond, cond_value))

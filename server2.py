@@ -16,11 +16,19 @@ competitions = []
 
 
 def search_func():
+    print('search_func')
     for i in sessions:
         print(i)
         print(i.in_competition)
         if i.ready:
             competitions.append(i)
+
+
+@bot.message_handler(commands=['help'])
+def help(message):
+    print(message.from_user.id)
+    print(message.chat.id)
+    bot.send_message(message.from_user.id, 'Для начала работы введите /start\n')
 
 
 @bot.message_handler(commands=['start'])
@@ -35,10 +43,18 @@ def session_control_func(message):
         sessions.update([(message.from_user.id, Session(message, ctrl, bot))])
         see_states()
 
-def see_states():
-    for i in sessions.values():
-        print(i.ready)
 
-search_func()
+@bot.message_handler(content_types=['text'])
+def handler(message):
+    bot.send_message(message.from_user.id, 'Для вызова подсказки введите /help')
+
+
+def see_states():
+    print('states_func')
+    for i in sessions.values():
+        print('{0} : is ready to competition - {1}'.format(i, i.ready))
+
+
+
 bot.polling()
 
