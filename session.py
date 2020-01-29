@@ -67,7 +67,7 @@ class Session:
         def callback_worker(call):
             print(call.message)
             if call.data == 'accept':
-                self.bot.send_message(call.message.chat.id, 'Отлично! Приступим к регистрации.\n Введите ваше имя')
+                self.bot.send_message(call.message.chat.id, 'Отлично! Приступим к регистрации.\nВведите ваше имя')
                 self.bot.register_next_step_handler(call.message, get_name)
 
         @self.bot.message_handler(content_types=['text'])

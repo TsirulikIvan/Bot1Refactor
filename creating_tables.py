@@ -17,8 +17,6 @@ e.execute("""
         score int default 10,
         reg_date datetime default current_timestamp,
         last_activity datetime,
-        test1_done boolean default false,
-        test2_done boolean default false,
         number_of_conversation int default 0
     )
 """)
@@ -26,8 +24,9 @@ e.execute("""
 e.execute("""
     create table groups (
         id integer primary key autoincrement,
+        group_code varchar(15) unique,
         admin_id integer,
-        group_name varchar(60),
+        group_name varchar(60) unique,
         company varchar(100)
     )
 """)
@@ -53,14 +52,22 @@ e.execute("""
     )
 """)
 
-e.execute("""
+e.execute("""                                                         
     create table admins (
         id integer primary key autoincrement,
-        chat_id integer,
+        chat_id integer unique,
         name varchar(60),
         surname varchar(70),
         pass varchar(65),
         reg_date datetime default current_timestamp
+    )
+""")
+
+e.execute("""                                                         
+    create table test_res (
+        user_id int unique,
+        res1 int,
+        answers int
     )
 """)
 

@@ -14,7 +14,7 @@ class Controller(object):
     def query_adm_data(self, table_name='users',
                        col_name=('user_name', 'user_surname')):
         res = self.engine.execute(
-            "select {0},{1},{2}  from {3}".format(*col_name, table_name))
+            "select {col_name} from {table_name}".format(col_name=col_name, table_name=table_name))
         try:
             return res.fetchall()
         except Exception as err:
